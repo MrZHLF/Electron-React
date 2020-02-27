@@ -3,33 +3,46 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch, faTimes } from '@fortawesome/free-solid-svg-icons'
 import PropTypes from 'prop-types'
 
+import useKeyPress from './../hooks/useKeyPress.js'
+
 const FileSearch = ({ title, onFileSearch }) => {
   const [inputAction, setInputAction] = useState(false)
   const [value, setValue] = useState('')
   const inputEl = useRef(null)
+
+  // 回车键
+  const enterPressed = useKeyPress(13)
+  // esc键
+  const encPressed = useKeyPress(27)
   //清空内容
-  const closeSearch = e => {
-    e.preventDefault()
+  const closeSearch = () => {
+    // e.preventDefault()
     setInputAction(false)
     setValue('')
   }
 
   useEffect(() => {
-    const handleInputEvent = event => {
-      const { keyCode } = event
-      if (keyCode === 13 && inputAction) {
-        //   键盘回车键
-        onFileSearch(value)
-        setValue('')
-      } else if (keyCode === 27 && inputAction) {
-        // 键盘esc
-        closeSearch(event)
-      }
+    if (enterPressed && inputAction) {
+      onFileSearch(value)
     }
-    document.addEventListener('keyup', handleInputEvent)
-    return () => {
-      document.removeEventListener('keyup', handleInputEvent)
+    if (encPressed && inputAction) {
+      closeSearch()
     }
+    // const handleInputEvent = event => {
+    //   const { keyCode } = event
+    //   if (keyCode === 13 && inputAction) {
+    //     //   键盘回车键
+    //     onFileSearch(value)
+    //     setValue('')
+    //   } else if (keyCode === 27 && inputAction) {
+    //     // 键盘esc
+    //     closeSearch(event)
+    //   }
+    // }
+    // document.addEventListener('keyup', handleInputEvent)
+    // return () => {
+    //   document.removeEventListener('keyup', handleInputEvent)
+    // }
   })
 
   //   input聚焦
@@ -43,7 +56,7 @@ const FileSearch = ({ title, onFileSearch }) => {
   return (
     <div className="alert alert-primary">
       {!inputAction && (
-        <div className="d-flex justify-content-between align-items-center">
+        <div className="d-flex alert-primary justify-content-between align-items-center mb-0">
           <span>{title}</span>
           <button
             type="button"
