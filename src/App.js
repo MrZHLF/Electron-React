@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import SimpleMDE from 'react-simplemde-editor'
 import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -12,6 +12,17 @@ import BottomBtn from './components/BottomBtn.jsx'
 import TabList from './components/TabList'
 
 function App() {
+  const [files, setFiles] = useState(defaultFiles)
+  const [activeFileID, setActiveFileID] = useState('')
+  const [opendFileIDs, setOpendFileIDs] = useState([])
+  const [unsavedFileIDs, setUnsavedFileIDs] = useState([])
+
+  const opendFiles = opendFileIDs.map(openID => {
+    return files.find(file => file.id === openID)
+  })
+
+  const activeFile = files.find(find => find.id === activeFileID)
+
   return (
     <div className="App container-fluid px-0">
       <div className="row no-gutters">
@@ -23,7 +34,7 @@ function App() {
             }}
           />{' '}
           <FileList
-            files={defaultFiles}
+            files={files}
             onFileClick={id => {
               console.log(id)
             }}
@@ -34,7 +45,7 @@ function App() {
               console.log(newValue, id)
             }}
           />{' '}
-          <div className="row no-gutters">
+          <div className="row no-gutters button-group">
             <div className="col-6">
               <BottomBtn text="新建" colorClass="btn-primary" icon={faPlus} />{' '}
             </div>{' '}
@@ -48,26 +59,33 @@ function App() {
           </div>{' '}
         </div>{' '}
         <div className="col-9  right-panel">
-          <TabList
-            files={defaultFiles}
-            activeId="1"
-            unsaveId={[1, 2, 3]}
-            onTabClick={id => {
-              console.log('tab', id)
-            }}
-            onCloseTab={id => {
-              console.log('onCloseTab', id)
-            }}
-          />{' '}
-          <SimpleMDE
-            value={defaultFiles[1].body}
-            onChange={value => {
-              console.log(value)
-            }}
-            options={{ minHeight: '515px' }}
-          />{' '}
-        </div>{' '}
-      </div>{' '}
+          {!activeFile && (
+            <div className="start-page">选择或者创建新的Markdown 文档</div>
+          )}
+          {activeFile && (
+            <>
+              <TabList
+                files={opendFiles}
+                activeId={{ activeFileID }}
+                unsaveId={{ unsavedFileIDs }}
+                onTabClick={id => {
+                  console.log('tab', id)
+                }}
+                onCloseTab={id => {
+                  console.log('onCloseTab', id)
+                }}
+              />{' '}
+              <SimpleMDE
+                value={activeFile && activeFile.body}
+                onChange={value => {
+                  console.log(value)
+                }}
+                options={{ minHeight: '515px' }}
+              />
+            </>
+          )}
+        </div>
+      </div>
     </div>
   )
 }
