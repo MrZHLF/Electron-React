@@ -13,25 +13,38 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
   const enterPressed = useKeyPress(13)
   // esc键
   const encPressed = useKeyPress(27)
-  const closeSearch = () => {
+  const closeSearch = editItem => {
     // ESC键
     setEditStatus(false)
     setValue('')
+    console.log(editItem)
+    // 判断有没有isNew 如果有删除
+    if (editItem.isNew) {
+      onFileDelete(editItem.id)
+    }
   }
 
   useEffect(() => {
-    if (enterPressed && editStatus) {
+    const editItem = files.find(file => file.id === editStatus)
+    if (enterPressed && editStatus && value.trim() != '') {
       //   键盘回车键
-      const editItem = files.find(file => file.id === editStatus)
       onSaveEdit(editItem.id, value)
       setEditStatus(false)
       setValue('')
     }
 
     if (encPressed && editStatus) {
-      closeSearch()
+      closeSearch(editItem)
     }
   })
+
+  useEffect(() => {
+    const newFile = files.find(file => file.isNew)
+    if (newFile) {
+      setEditStatus(newFile.id)
+      setValue(newFile.title)
+    }
+  }, [files])
 
   return (
     <ul className="list-group list-group-flush file-list">
@@ -43,7 +56,7 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
           data-title={file.title}
         >
           {/* 预览 */
-          file.id !== editStatus && (
+          file.id !== editStatus && !file.isNew && (
             <>
               <span className="col-2">
                 <FontAwesomeIcon size="lg" icon={faMarkdown} />
@@ -78,11 +91,12 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
             </>
           )}
           {/* 编辑状态 */
-          file.id == editStatus && (
+          (file.id == editStatus || file.isNew) && (
             <>
               <input
                 className="form-control col-10"
                 value={value}
+                placeholder="请输入文件名称"
                 onChange={e => {
                   setValue(e.target.value)
                 }}
@@ -90,7 +104,9 @@ const FileList = ({ files, onFileClick, onSaveEdit, onFileDelete }) => {
               <button
                 type="button"
                 className="icon-button col-2"
-                onClick={closeSearch}
+                onClick={() => {
+                  closeSearch(file)
+                }}
               >
                 <FontAwesomeIcon size="lg" icon={faTimes} title="关闭" />
               </button>

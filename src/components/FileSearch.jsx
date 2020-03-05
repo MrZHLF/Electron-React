@@ -19,6 +19,7 @@ const FileSearch = ({ title, onFileSearch }) => {
     // e.preventDefault()
     setInputAction(false)
     setValue('')
+    onFileSearch('')
   }
 
   useEffect(() => {
