@@ -4,6 +4,8 @@ import './App.css'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'easymde/dist/easymde.min.css'
 import uuidv4 from 'uuid/v4'
+
+import { flattenArr, objToArr } from './utils/helper'
 import { faPlus, faFileImport } from '@fortawesome/free-solid-svg-icons'
 
 import FileSearch from './components/FileSearch'
@@ -13,15 +15,12 @@ import BottomBtn from './components/BottomBtn.jsx'
 import TabList from './components/TabList'
 
 function App() {
-  const [files, setFiles] = useState(defaultFiles)
+  const [files, setFiles] = useState(flattenArr(defaultFiles))
   const [activeFileID, setActiveFileID] = useState('')
   const [opendFileIDs, setOpendFileIDs] = useState([])
   const [unsavedFileIDs, setUnsavedFileIDs] = useState([])
   const [searchedFiles, setSearchedFiles] = useState([]) //搜索
-
-  let opendFiles = opendFileIDs.map(openID => {
-    return files.find(file => file.id === openID)
-  })
+  const filesArr = objToArr(files)
 
   const fileClick = fileID => {
     setActiveFileID(fileID) //选择的
@@ -51,13 +50,15 @@ function App() {
 
   const fileChange = (id, value) => {
     // 更新内容
-    const newFiles = files.map(file => {
-      if (file.id === id) {
-        file.body = value
-      }
-      return file
-    })
-    setFiles(newFiles)
+    // const newFiles = files.map(file => {
+    //   if (file.id === id) {
+    //     file.body = value
+    //   }
+    //   return file
+    // })
+    const newFile = { ...files[id], body: value }
+
+    setFiles({ ...files, [id]: newFile })
 
     if (!unsavedFileIDs.includes(id)) {
       setUnsavedFileIDs([...unsavedFileIDs, id])
@@ -66,60 +67,64 @@ function App() {
 
   const deleteFile = id => {
     // 删除
-    const newFiles = files.filter(file => file.id !== id)
-    setFiles(newFiles)
+    // const newFiles = files.filter(file => file.id !== id)
+    delete files[id]
+    setFiles(files)
     // 关闭tab
     tabClose(id)
   }
-
   const updateFileName = (id, title) => {
     // 更新标题
-    const newFiles = files.map(file => {
-      if (file.id === id) {
-        file.title = title
-        file.isNew = false
-      }
-      console.log(file)
-      return file
-    })
-    setFiles(newFiles)
+    const modifiledFile = { ...files[id], title, isNew: false }
+    setFiles({ ...files, [id]: modifiledFile })
   }
 
   const fileSearch = keyword => {
     // 搜索
-    const newFiles = files.filter(file => file.title.includes(keyword))
+    const newFiles = filesArr.filter(file => file.title.includes(keyword))
     setSearchedFiles(newFiles)
   }
 
   const createNewFile = () => {
     // 创建文件
     const newID = uuidv4() //自动生成id
-    const newFiles = [
-      ...files,
-      {
-        id: newID,
-        title: '',
-        body: '## 请输入新创建的内容',
-        createdAt: new Date().getTime(),
-        isNew: true
-      }
-    ]
-    setFiles(newFiles)
+    // const newFiles = [
+    //   ...files,
+    //   {
+    //     id: newID,
+    //     title: '',
+    //     body: '## 请输入新创建的内容',
+    //     createdAt: new Date().getTime(),
+    //     isNew: true
+    //   }
+    // ]
+    const newFile = {
+      id: newID,
+      title: '',
+      body: '## 请输入新创建的内容',
+      createdAt: new Date().getTime(),
+      isNew: true
+    }
+    setFiles({ ...files, [newID]: newFile })
   }
 
-  const activeFile = files.find(find => find.id === activeFileID)
-  const fileListArr = searchedFiles.length > 0 ? searchedFiles : files
+  // const activeFile = files.find(find => find.id === activeFileID)
+  const activeFile = files[activeFileID]
+  let opendFiles = opendFileIDs.map(openID => {
+    return files[openID]
+  })
+  const fileListArr = searchedFiles.length > 0 ? searchedFiles : filesArr
   return (
     <div className="App container-fluid px-0">
       <div className="row no-gutters">
         <div className="col-3 bg-light left-panel">
-          <FileSearch title="我的云文档" onFileSearch={fileSearch} />
+          <FileSearch title="我的云文档" onFileSearch={fileSearch} />{' '}
           <FileList
             files={fileListArr}
             onFileClick={fileClick}
             onFileDelete={deleteFile}
             onSaveEdit={updateFileName}
-          />
+          />{' '}
           <div className="row no-gutters button-group">
             <div className="col-6">
               <BottomBtn
@@ -127,18 +132,19 @@ function App() {
                 onBtnClick={createNewFile}
                 colorClass="btn-primary"
                 icon={faPlus}
-              />
-            </div>
+              />{' '}
+            </div>{' '}
             <div className="col-6">
               <BottomBtn
                 text="导入"
                 colorClass="btn-success"
                 icon={faFileImport}
-              />
-            </div>
-          </div>
-        </div>
+              />{' '}
+            </div>{' '}
+          </div>{' '}
+        </div>{' '}
         <div className="col-9  right-panel">
+          {' '}
           {!activeFile && (
             <div className="start-page"> 选择或者创建新的Markdown 文档 </div>
           )}{' '}
